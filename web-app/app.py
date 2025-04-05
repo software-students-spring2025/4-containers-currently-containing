@@ -54,8 +54,12 @@ def login():
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    stored_id = user.get('gesture_password_id')
-    if stored_id and str(stored_id) == gesture_password_id:
+    gesture_record = get_user_gesture_password(user['_id'])
+    if not gesture_record:
+        return jsonify({'error': 'No gesture password found'}), 404
+
+    expected_id = str(gesture_record['_id'])
+    if gesture_password_id == expected_id:
         return jsonify({'message': 'Login successful'})
     else:
         return jsonify({'error': 'Gesture does not match'}), 401
