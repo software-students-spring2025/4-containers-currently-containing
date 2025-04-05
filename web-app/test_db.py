@@ -1,5 +1,5 @@
 from flask import Flask
-from utils.database import init_app, create_user, get_user_by_username
+from database import init_app, create_user, get_user_by_username
 
 app = Flask(__name__)
 mongo = init_app(app)
