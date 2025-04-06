@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  # MongoDB service
+  mongodb:
+    image: mongo:latest
+    container_name: gesture_auth_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=secretpassword
+      - MONGO_INITDB_DATABASE=gesture_auth
+    networks:
+      - app_network
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+
+networks:
+  app_network:
+    driver: bridge

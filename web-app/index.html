@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gesture Auth System</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 600px; margin: auto; }
+    h2 { margin-top: 2em; }
+    input, button { margin: 0.5em 0; padding: 0.5em; width: 100%; box-sizing: border-box; }
+    #result { margin-top: 1em; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>Gesture Authentication</h1>
+
+  <!-- 🔐 Registration Form -->
+  <h2>Register</h2>
+  <input type="text" id="reg-username" placeholder="Username" />
+  <input type="text" id="reg-gesture" placeholder="Gesture Password ID (will be changed to camera input later)" />
+  <button onclick="submitRegister()">Register</button>
+
+  <!-- 🔓 Login Form -->
+  <h2>Login</h2>
+  <input type="text" id="login-username" placeholder="Username" />
+  <input type="text" id="login-gesture-id" placeholder="Gesture Password ID (will be changed to camera input later)" />
+  <button onclick="submitLogin()">Login</button>
+
+  <div id="result"></div>
+
+  <script>
+    async function submitRegister() {
+      const username = document.getElementById("reg-username").value.trim();
+      const gesture_name = document.getElementById("reg-gesture").value.trim();
+      const resultEl = document.getElementById("result");
+
+      if (!username || !gesture_name) {
+        resultEl.textContent = "Please fill in both registration fields.";
+        return;
+      }
+
+      const res = await fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, gesture_name })
+      });
+
+      const data = await res.json();
+      resultEl.textContent = res.ok
+        ? `Registered! Gesture ID: ${data.gesture_password_id}`
+        : `Error: ${data.error}`;
+    }
+
+    async function submitLogin() {
+      const username = document.getElementById("login-username").value.trim();
+      const gesture_password_id = document.getElementById("login-gesture-id").value.trim();
+      const resultEl = document.getElementById("result");
+
+      if (!username || !gesture_password_id) {
+        resultEl.textContent = "Please fill in both login fields.";
+        return;
+      }
+
+      const res = await fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, gesture_password_id })
+      });
+
+      const data = await res.json();
+      resultEl.textContent = res.ok ? data.message : `Error: ${data.error}`;
+    }
+  </script>
+</body>
+</html>
