@@ -9,9 +9,15 @@ mongo = None
 def init_app(app):
     """Initialize the MongoDB connection with the Flask app"""
     global mongo
-    app.config['MONGO_URI'] = os.environ.get('MONGODB_URI', 
-                                          'mongodb://admin:secretpassword@localhost:27017/gesture_auth?authSource=admin')
+    # real database here
+    #app.config['MONGO_URI'] = os.environ.get('MONGODB_URI', 
+                                          #'mongodb://admin:secretpassword@localhost:27017/gesture_auth?authSource=admin')
+    
+    # mock database here
+    app.config['MONGO_URI'] = "mongodb://localhost:27017/gesture_auth_mock"
+    
     mongo = PyMongo(app)
+    print("Connected to:", mongo.db.name)
     return mongo
 
 # User-related functions

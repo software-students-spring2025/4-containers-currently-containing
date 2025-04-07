@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify, send_from_directory
-from utils.database import (
+from database import (
     init_app, create_user, get_user_by_username,
-    create_gesture_password, get_user_gesture_password
+    create_gesture_password, get_user_gesture_password, verify_gesture
 )
 import os
-from bson import ObjectId
 
 app = Flask(__name__)
 mongo = init_app(app)
@@ -14,22 +13,22 @@ def serve_index():
     return send_from_directory('.', 'index.html')
 
 
-# Register Route
+# -------------------- REGISTER --------------------
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
     username = data.get('username')
     gesture_name = data.get('gesture_name')
-    gesture_model_path = data.get('gesture_model_path', 'model.tflite') 
+    hand_positions = data.get('hand_positions')
 
-    if not username or not gesture_name:
-        return jsonify({'error': 'Missing username or gesture name'}), 400
+    if not username or not gesture_name or not hand_positions:
+        return jsonify({'error': 'Missing required fields (username, gesture_name, or hand_positions)'}), 400
 
     if get_user_by_username(username):
         return jsonify({'error': 'User already exists'}), 400
 
-    user_id = create_user(username, f'{username}@placeholder.com')
-    gesture_id = create_gesture_password(user_id, gesture_name, gesture_model_path)
+    user_id = create_user(username, f"{username}@placeholder.com")
+    gesture_id = create_gesture_password(user_id, gesture_name, hand_positions=hand_positions)
 
     return jsonify({
         'message': 'User registered successfully',
@@ -38,42 +37,40 @@ def register():
     })
 
 
-#Login Route
+
+# -------------------- LOGIN --------------------
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
-    gesture_password_id = data.get('gesture_password_id')
+    gesture_data = data.get('gesture_data')  # can be confidence score or hand positions
 
-    print("Received login data:", data)
-
-    if not username or not gesture_password_id:
-        return jsonify({'error': 'Missing username or gesture_password_id'}), 400
+    if not username or not gesture_data:
+        return jsonify({'error': 'Missing username or gesture data'}), 400
 
     user = get_user_by_username(username)
     if not user:
         return jsonify({'error': 'User not found'}), 404
 
-    gesture_record = get_user_gesture_password(user['_id'])
-    if not gesture_record:
-        return jsonify({'error': 'No gesture password found'}), 404
+    user_id = str(user['_id'])
+    success, confidence = verify_gesture(user_id, gesture_data)
 
-    expected_id = str(gesture_record['_id'])
-    if gesture_password_id == expected_id:
-        return jsonify({'message': 'Login successful'})
+    if success:
+        return jsonify({'message': 'Login successful', 'confidence': confidence})
     else:
-        return jsonify({'error': 'Gesture does not match'}), 401
+        return jsonify({'error': 'Gesture verification failed', 'confidence': confidence}), 401
 
-
-# just used to check data 
 @app.route('/data')
 def get_all_users():
-    users = list(mongo.db.users.find())
-    for user in users:
-        user['_id'] = str(user['_id'])  # Convert ObjectId to string
-        if 'gesture_password_id' in user:
-            user['gesture_password_id'] = str(user['gesture_password_id'])
-    return jsonify(users)
+    try:
+        users = list(mongo.db.users.find())
+        for user in users:
+            user['_id'] = str(user['_id'])
+            if 'gesture_password_id' in user:
+                user['gesture_password_id'] = str(user['gesture_password_id'])
+        return jsonify(users)
+    except Exception as e:
+        return jsonify({"error": "Database fetch failed", "details": str(e)}), 500
 
 @app.route('/view')
 def view_data_page():

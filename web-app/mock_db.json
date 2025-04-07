@@ -1,0 +1,116 @@
+{
+    "users": [
+      {
+        "_id": "64a7b8c9d0e1f2g3h4i5j6k7",
+        "username": "demo_user",
+        "email": "demo@example.com",
+        "created_at": "2025-04-06T20:15:30.456Z",
+        "last_login": "2025-04-06T20:15:30.456Z",
+        "gesture_password_id": "54a3b2c1d0e9f8g7h6i5j4k3",
+        "documents": [
+          {
+            "document_id": "44a5b6c7d8e9f0g1h2i3j4k5",
+            "title": "Demo Document",
+            "last_accessed": "2025-04-06T20:15:30.456Z"
+          }
+        ]
+      },
+      {
+        "_id": "34a5b6c7d8e9f0g1h2i3j4k5",
+        "username": "positions_user",
+        "email": "positions@example.com",
+        "created_at": "2025-04-06T20:15:30.456Z",
+        "last_login": "2025-04-06T20:15:30.456Z",
+        "gesture_password_id": "24a3b2c1d0e9f8g7h6i5j4k3",
+        "documents": [
+          {
+            "document_id": "14a5b6c7d8e9f0g1h2i3j4k5",
+            "title": "Hand Positions Demo Document",
+            "last_accessed": "2025-04-06T20:15:30.456Z"
+          }
+        ]
+      }
+    ],
+    "gesture_passwords": [
+      {
+        "_id": "54a3b2c1d0e9f8g7h6i5j4k3",
+        "user_id": "64a7b8c9d0e1f2g3h4i5j6k7",
+        "gesture_data": {
+          "model_type": "teachable_machine",
+          "gesture_name": "demo_auth_gesture",
+          "gesture_model_path": "/models/demo/auth_gesture",
+          "created_at": "2025-04-06T20:15:30.456Z",
+          "updated_at": "2025-04-06T20:15:30.456Z",
+          "confidence_threshold": 0.85
+        },
+        "active": true
+      },
+      {
+        "_id": "24a3b2c1d0e9f8g7h6i5j4k3",
+        "user_id": "34a5b6c7d8e9f0g1h2i3j4k5",
+        "gesture_data": {
+          "storage_type": "positions",
+          "gesture_name": "hand_wave",
+          "hand_positions": [
+            { "joint_id": "wrist", "x": 0.5, "y": 0.5, "z": 0.0 },
+            { "joint_id": "thumb_tip", "x": 0.4, "y": 0.4, "z": 0.0 },
+            { "joint_id": "index_tip", "x": 0.5, "y": 0.3, "z": 0.0 },
+            { "joint_id": "middle_tip", "x": 0.55, "y": 0.28, "z": 0.0 },
+            { "joint_id": "ring_tip", "x": 0.6, "y": 0.3, "z": 0.0 },
+            { "joint_id": "pinky_tip", "x": 0.65, "y": 0.35, "z": 0.0 }
+          ],
+          "created_at": "2025-04-06T20:15:30.456Z",
+          "updated_at": "2025-04-06T20:15:30.456Z",
+          "confidence_threshold": 0.85
+        },
+        "active": true
+      }
+    ],
+    "documents": [
+      {
+        "_id": "44a5b6c7d8e9f0g1h2i3j4k5",
+        "user_id": "64a7b8c9d0e1f2g3h4i5j6k7",
+        "title": "Demo Document",
+        "content": "<h1>Welcome to Gesture Auth</h1><p>This is a demo document protected by gesture authentication.</p>",
+        "created_at": "2025-04-06T20:15:30.456Z",
+        "updated_at": "2025-04-06T20:15:30.456Z",
+        "access_logs": []
+      },
+      {
+        "_id": "14a5b6c7d8e9f0g1h2i3j4k5",
+        "user_id": "34a5b6c7d8e9f0g1h2i3j4k5",
+        "title": "Hand Positions Demo Document",
+        "content": "<h1>Hand Positions Authentication</h1><p>This document demonstrates authentication using hand position data.</p>",
+        "created_at": "2025-04-06T20:15:30.456Z",
+        "updated_at": "2025-04-06T20:15:30.456Z",
+        "access_logs": []
+      }
+    ],
+    "authentication_logs": [
+      {
+        "_id": "94a5b6c7d8e9f0g1h2i3j4k5",
+        "user_id": "64a7b8c9d0e1f2g3h4i5j6k7",
+        "timestamp": "2025-04-06T21:30:45.123Z",
+        "success": true,
+        "gesture_confidence": 0.92,
+        "device_info": {
+          "ip": "127.0.0.1",
+          "user_agent": "Mozilla/5.0...",
+          "device_type": "desktop"
+        },
+        "document_accessed": "44a5b6c7d8e9f0g1h2i3j4k5"
+      }
+    ],
+    "gesture_training_sessions": [
+      {
+        "_id": "84a5b6c7d8e9f0g1h2i3j4k5",
+        "user_id": "34a5b6c7d8e9f0g1h2i3j4k5",
+        "gesture_password_id": "24a3b2c1d0e9f8g7h6i5j4k3",
+        "start_time": "2025-04-06T20:00:30.456Z",
+        "end_time": "2025-04-06T20:15:30.456Z",
+        "samples_collected": 25,
+        "completion_status": "complete",
+        "notes": "Initial hand position gesture setup"
+      }
+    ]
+  }
