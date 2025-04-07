@@ -4,70 +4,374 @@
   <meta charset="UTF-8" />
   <title>Gesture Auth System</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; max-width: 600px; margin: auto; }
+    body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
     h2 { margin-top: 2em; }
-    input, button { margin: 0.5em 0; padding: 0.5em; width: 100%; box-sizing: border-box; }
+    input, button, textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; box-sizing: border-box; }
     #result { margin-top: 1em; font-weight: bold; }
+    .tabs { display: flex; margin-bottom: 1em; }
+    .tab { padding: 0.5em 1em; cursor: pointer; border: 1px solid #ccc; }
+    .tab.active { background: #f0f0f0; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .doc-list { margin: 1em 0; }
+    .doc-item { padding: 0.5em; border: 1px solid #ddd; margin-bottom: 0.5em; cursor: pointer; }
+    .doc-item:hover { background: #f5f5f5; }
+    .editor { display: none; }
+    .editor textarea { min-height: 200px; }
   </style>
 </head>
 <body>
   <h1>Gesture Authentication</h1>
-
-  <!-- 🔐 Registration Form -->
+  
+  <!-- Registration Section -->
   <h2>Register</h2>
-  <input type="text" id="reg-username" placeholder="Username" />
-  <input type="text" id="reg-gesture" placeholder="Gesture Password ID (will be changed to camera input later)" />
-  <button onclick="submitRegister()">Register</button>
-
-  <!-- 🔓 Login Form -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchRegisterTab('id-tab')">Simple Registration</div>
+    <div class="tab" onclick="switchRegisterTab('positions-tab')">Hand Position Registration</div>
+  </div>
+  
+  <div id="reg-id-tab" class="tab-content active">
+    <input type="text" id="reg-username" placeholder="Username" />
+    <input type="text" id="reg-gesture" placeholder="Gesture Name" />
+    <button onclick="submitRegister('simple')">Register</button>
+  </div>
+  
+  <div id="reg-positions-tab" class="tab-content">
+    <input type="text" id="reg-pos-username" placeholder="Username" />
+    <input type="text" id="reg-pos-gesture-name" placeholder="Gesture Name" />
+    <textarea id="reg-hand-positions" placeholder="Hand positions JSON (sample shown)" rows="6">
+[
+  {"joint_id": "wrist", "x": 0.5, "y": 0.5, "z": 0.0},
+  {"joint_id": "thumb_tip", "x": 0.4, "y": 0.4, "z": 0.0},
+  {"joint_id": "index_tip", "x": 0.5, "y": 0.3, "z": 0.0}
+]
+    </textarea>
+    <button onclick="submitRegister('positions')">Register with Positions</button>
+  </div>
+  
+  <!-- Login Section -->
   <h2>Login</h2>
-  <input type="text" id="login-username" placeholder="Username" />
-  <input type="text" id="login-gesture-id" placeholder="Gesture Password ID (will be changed to camera input later)" />
-  <button onclick="submitLogin()">Login</button>
-
+  <div class="tabs">
+    <div class="tab active" onclick="switchLoginTab('id-tab')">ID Login</div>
+    <div class="tab" onclick="switchLoginTab('positions-tab')">Position Login</div>
+    <div class="tab" onclick="switchLoginTab('confidence-tab')">Confidence Login</div>
+  </div>
+  
+  <div id="login-id-tab" class="tab-content active">
+    <input type="text" id="login-username" placeholder="Username" />
+    <input type="text" id="login-gesture-id" placeholder="Gesture Password ID" />
+    <button onclick="submitLogin('id')">Login</button>
+  </div>
+  
+  <div id="login-positions-tab" class="tab-content">
+    <input type="text" id="login-pos-username" placeholder="Username" />
+    <textarea id="login-hand-positions" placeholder="Hand positions JSON" rows="6">
+[
+  {"joint_id": "wrist", "x": 0.5, "y": 0.5, "z": 0.0},
+  {"joint_id": "thumb_tip", "x": 0.4, "y": 0.4, "z": 0.0},
+  {"joint_id": "index_tip", "x": 0.5, "y": 0.3, "z": 0.0}
+]
+    </textarea>
+    <button onclick="submitLogin('positions')">Login</button>
+  </div>
+  
+  <div id="login-confidence-tab" class="tab-content">
+    <input type="text" id="login-conf-username" placeholder="Username" />
+    <input type="number" id="login-confidence" placeholder="Confidence Score (0.0-1.0)" min="0" max="1" step="0.01" value="0.85" />
+    <button onclick="submitLogin('confidence')">Login</button>
+  </div>
+  
+  <!-- Result Display -->
   <div id="result"></div>
-
+  
+  <!-- Document List (shows after login) -->
+  <div id="document-section" style="display: none;">
+    <h2>Your Documents</h2>
+    <div id="doc-list" class="doc-list"></div>
+    <button id="new-doc-btn" onclick="createNewDocument()">Create New Document</button>
+  </div>
+  
+  <!-- Document Editor -->
+  <div id="editor" class="editor">
+    <h2>Document Editor</h2>
+    <input type="text" id="doc-title" placeholder="Document Title" />
+    <textarea id="doc-content" placeholder="Document content..."></textarea>
+    <button onclick="saveDocument()">Save Document</button>
+    <button onclick="closeEditor()">Close</button>
+  </div>
+  
   <script>
-    async function submitRegister() {
-      const username = document.getElementById("reg-username").value.trim();
-      const gesture_name = document.getElementById("reg-gesture").value.trim();
-      const resultEl = document.getElementById("result");
-
-      if (!username || !gesture_name) {
-        resultEl.textContent = "Please fill in both registration fields.";
-        return;
-      }
-
-      const res = await fetch("/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, gesture_name })
+    // Global state
+    let currentUser = null;
+    let currentDocId = null;
+    
+    // Tab switching functions
+    function switchRegisterTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(`reg-${tabId}`).classList.add('active');
+      
+      document.querySelectorAll('.tabs:first-of-type .tab').forEach((tab, index) => {
+        if ((tabId === 'id-tab' && index === 0) || (tabId === 'positions-tab' && index === 1)) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
       });
-
-      const data = await res.json();
-      resultEl.textContent = res.ok
-        ? `Registered! Gesture ID: ${data.gesture_password_id}`
-        : `Error: ${data.error}`;
     }
-
-    async function submitLogin() {
-      const username = document.getElementById("login-username").value.trim();
-      const gesture_password_id = document.getElementById("login-gesture-id").value.trim();
+    
+    function switchLoginTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.getElementById(`login-${tabId}`).classList.add('active');
+      
+      document.querySelectorAll('.tabs:nth-of-type(2) .tab').forEach((tab, index) => {
+        if ((tabId === 'id-tab' && index === 0) || 
+            (tabId === 'positions-tab' && index === 1) ||
+            (tabId === 'confidence-tab' && index === 2)) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+    }
+    
+    // Registration function
+    async function submitRegister(type) {
       const resultEl = document.getElementById("result");
-
-      if (!username || !gesture_password_id) {
-        resultEl.textContent = "Please fill in both login fields.";
+      let data = {};
+      
+      if (type === 'simple') {
+        const username = document.getElementById("reg-username").value.trim();
+        const gesture_name = document.getElementById("reg-gesture").value.trim();
+        
+        if (!username || !gesture_name) {
+          resultEl.textContent = "Please fill in both registration fields.";
+          return;
+        }
+        
+        data = { username, gesture_name };
+      } else if (type === 'positions') {
+        const username = document.getElementById("reg-pos-username").value.trim();
+        const gesture_name = document.getElementById("reg-pos-gesture-name").value.trim();
+        const handPositionsText = document.getElementById("reg-hand-positions").value.trim();
+        
+        if (!username || !gesture_name || !handPositionsText) {
+          resultEl.textContent = "Please fill in all registration fields.";
+          return;
+        }
+        
+        try {
+          const hand_positions = JSON.parse(handPositionsText);
+          data = { username, gesture_name, hand_positions };
+        } catch (e) {
+          resultEl.textContent = "Invalid JSON for hand positions: " + e.message;
+          return;
+        }
+      }
+      
+      try {
+        const res = await fetch("/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        
+        const responseData = await res.json();
+        
+        if (res.ok) {
+          resultEl.textContent = `Registered! Gesture ID: ${responseData.gesture_password_id}`;
+        } else {
+          resultEl.textContent = `Error: ${responseData.error}`;
+        }
+      } catch (e) {
+        resultEl.textContent = `Request failed: ${e.message}`;
+      }
+    }
+    
+    // Login function
+    async function submitLogin(type) {
+      const resultEl = document.getElementById("result");
+      let data = {};
+      let username = "";
+      
+      if (type === 'id') {
+        username = document.getElementById("login-username").value.trim();
+        const gesture_password_id = document.getElementById("login-gesture-id").value.trim();
+        
+        if (!username || !gesture_password_id) {
+          resultEl.textContent = "Please fill in both login fields.";
+          return;
+        }
+        
+        data = { username, gesture_password_id };
+      } else if (type === 'positions') {
+        username = document.getElementById("login-pos-username").value.trim();
+        const handPositionsText = document.getElementById("login-hand-positions").value.trim();
+        
+        if (!username || !handPositionsText) {
+          resultEl.textContent = "Please fill in both username and hand positions.";
+          return;
+        }
+        
+        try {
+          const hand_positions = JSON.parse(handPositionsText);
+          data = { username, hand_positions };
+        } catch (e) {
+          resultEl.textContent = "Invalid JSON for hand positions: " + e.message;
+          return;
+        }
+      } else if (type === 'confidence') {
+        username = document.getElementById("login-conf-username").value.trim();
+        const confidence = parseFloat(document.getElementById("login-confidence").value);
+        
+        if (!username || isNaN(confidence)) {
+          resultEl.textContent = "Please fill in both username and confidence score.";
+          return;
+        }
+        
+        data = { username, gesture_data: confidence };
+      }
+      
+      try {
+        const res = await fetch("/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data)
+        });
+        
+        const responseData = await res.json();
+        
+        if (res.ok) {
+          resultEl.textContent = responseData.confidence 
+            ? `${responseData.message} (Confidence: ${responseData.confidence.toFixed(2)})` 
+            : responseData.message;
+            
+          // Set current user and load documents
+          currentUser = username;
+          loadDocuments(username);
+        } else {
+          resultEl.textContent = responseData.confidence 
+            ? `Error: ${responseData.error} (Confidence: ${responseData.confidence.toFixed(2)})` 
+            : `Error: ${responseData.error}`;
+        }
+      } catch (e) {
+        resultEl.textContent = `Request failed: ${e.message}`;
+      }
+    }
+    
+    // Document management functions
+    async function loadDocuments(username) {
+      try {
+        const res = await fetch(`/documents?username=${username}`);
+        const data = await res.json();
+        
+        if (res.ok) {
+          // Show document section
+          document.getElementById('document-section').style.display = 'block';
+          
+          // Clear existing list
+          const docList = document.getElementById('doc-list');
+          docList.innerHTML = '';
+          
+          // Add documents to list
+          if (data.documents && data.documents.length > 0) {
+            data.documents.forEach(doc => {
+              const docItem = document.createElement('div');
+              docItem.className = 'doc-item';
+              docItem.textContent = doc.title;
+              docItem.onclick = () => openDocument(doc.id);
+              docList.appendChild(docItem);
+            });
+          } else {
+            docList.innerHTML = '<p>No documents found.</p>';
+          }
+        } else {
+          console.error('Failed to load documents:', data.error);
+        }
+      } catch (e) {
+        console.error('Error loading documents:', e);
+      }
+    }
+    
+    async function openDocument(docId) {
+      try {
+        const res = await fetch(`/documents/${docId}?username=${currentUser}`);
+        const doc = await res.json();
+        
+        if (res.ok) {
+          // Show editor
+          document.getElementById('editor').style.display = 'block';
+          document.getElementById('doc-title').value = doc.title;
+          document.getElementById('doc-content').value = doc.content;
+          currentDocId = docId;
+        } else {
+          alert(`Error opening document: ${doc.error}`);
+        }
+      } catch (e) {
+        console.error('Error opening document:', e);
+      }
+    }
+    
+    function createNewDocument() {
+      // Show editor with empty fields
+      document.getElementById('editor').style.display = 'block';
+      document.getElementById('doc-title').value = '';
+      document.getElementById('doc-content').value = '';
+      currentDocId = null;
+    }
+    
+    async function saveDocument() {
+      const title = document.getElementById('doc-title').value.trim();
+      const content = document.getElementById('doc-content').value;
+      
+      if (!title) {
+        alert('Please enter a document title');
         return;
       }
-
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, gesture_password_id })
-      });
-
-      const data = await res.json();
-      resultEl.textContent = res.ok ? data.message : `Error: ${data.error}`;
+      
+      try {
+        if (currentDocId) {
+          // Update existing document
+          const res = await fetch(`/documents/${currentDocId}?username=${currentUser}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content })
+          });
+          
+          const data = await res.json();
+          
+          if (res.ok) {
+            alert('Document updated successfully');
+            loadDocuments(currentUser); // Refresh document list
+          } else {
+            alert(`Error saving document: ${data.error}`);
+          }
+        } else {
+          // Create new document
+          const res = await fetch(`/documents?username=${currentUser}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, content })
+          });
+          
+          const data = await res.json();
+          
+          if (res.ok) {
+            alert('Document created successfully');
+            loadDocuments(currentUser); // Refresh document list
+            closeEditor();
+          } else {
+            alert(`Error creating document: ${data.error}`);
+          }
+        }
+      } catch (e) {
+        console.error('Error saving document:', e);
+        alert(`Error saving document: ${e.message}`);
+      }
+    }
+    
+    function closeEditor() {
+      document.getElementById('editor').style.display = 'none';
+      currentDocId = null;
     }
   </script>
 </body>
