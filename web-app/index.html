@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <title>Gesture Auth System</title>
   <style>
-    body { font-family: sans-serif; padding: 2em; max-width: 600px; margin: auto; }
+    body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
     h2 { margin-top: 2em; }
     input, button, textarea { margin: 0.5em 0; padding: 0.5em; width: 100%; box-sizing: border-box; }
     #result { margin-top: 1em; font-weight: bold; }
@@ -60,7 +60,23 @@
   <button onclick="submitLogin()">Login</button>
 
   <div id="result"></div>
-
+  
+  <!-- Document List (shows after login) -->
+  <div id="document-section" style="display: none;">
+    <h2>Your Documents</h2>
+    <div id="doc-list" class="doc-list"></div>
+    <button id="new-doc-btn" onclick="createNewDocument()">Create New Document</button>
+  </div>
+  
+  <!-- Document Editor -->
+  <div id="editor" class="editor">
+    <h2>Document Editor</h2>
+    <input type="text" id="doc-title" placeholder="Document Title" />
+    <textarea id="doc-content" placeholder="Document content..."></textarea>
+    <button onclick="saveDocument()">Save Document</button>
+    <button onclick="closeEditor()">Close</button>
+  </div>
+  
   <script>
     function collectHandPositions(tableId) {
       const inputs = document.querySelectorAll(`#${tableId} input`);
