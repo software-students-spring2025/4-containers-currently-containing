@@ -1,21 +1,26 @@
-FROM python:3.10
+# Use a Python base image that supports mediapipe (3.10 or 3.11)
+FROM python:3.11-slim
 
-WORKDIR /app
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-# Install system packages (MediaPipe needs these)
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    ffmpeg \
     libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements
-COPY Pipfile Pipfile.lock ./
+# Install Python packages
+RUN pip install --upgrade pip
+RUN pip install mediapipe opencv-python-headless numpy
 
-# Install pipenv and dependencies
-RUN pip install pipenv && pipenv install --system
+# Copy your app code into the container
+WORKDIR /app
+COPY main.py .
 
-# Copy source code
-COPY . .
-
-# Run your hand tracking script
+# Default command
 CMD ["python", "main.py"]
