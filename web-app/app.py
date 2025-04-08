@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect, render_template
 from database import (
     init_app, create_user, get_user_by_username,
     create_gesture_password, get_user_gesture_password,
@@ -11,9 +11,17 @@ app = Flask(__name__)
 mongo = init_app(app)
 
 @app.route('/')
+def root():
+    return redirect('/home')
+
+@app.route('/home')
+def home():
+    return render_template('index.html')
+
+@app.route('/loginregister')
 def serve_index():
-    return send_from_directory('./templates', 'index.html')
-  
+    return send_from_directory('./templates', 'registerlogin.html')
+
 # Register Route
 @app.route('/register', methods=['POST'])
 def register():
