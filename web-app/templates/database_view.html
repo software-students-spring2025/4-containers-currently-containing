@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Database Contents</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>All Data in Database</h1>
+  <button onclick="loadData()">Load Data</button>
+  <pre id="output">Click "Load Data" to see all info</pre>
+
+  <script>
+    async function loadData() {
+      const res = await fetch('/data');
+      const json = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(json, null, 2);
+    }
+  </script>
+</body>
+</html>

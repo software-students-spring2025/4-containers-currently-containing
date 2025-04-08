@@ -12,7 +12,7 @@ mongo = init_app(app)
 
 @app.route('/')
 def serve_index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('./templates', 'index.html')
   
 # Register Route
 @app.route('/register', methods=['POST'])
