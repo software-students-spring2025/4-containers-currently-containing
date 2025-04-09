@@ -4,52 +4,62 @@
   <meta charset="UTF-8" />
   <title>Gesture Auth System</title>
   <link rel="stylesheet" href="static/style.css">
-  <script src="static/script.js"></script>
+  <script src="static/script.js" defer></script>
 </head>
 <body>
-  <h1>Gesture Authentication</h1>
+  <h1>Hand Angle Authentication</h1>
 
   <!-- Registration Form -->
   <h2>Register</h2>
   <input type="text" id="reg-username" placeholder="Username" />
   <input type="text" id="reg-gesture" placeholder="Gesture Name" />
 
-  <h4>Hand Positions</h4>
+  <h4>Hand Angles</h4>
   <table>
     <thead>
-      <tr><th>Joint ID</th><th>X</th><th>Y</th><th>Z</th></tr>
+      <tr><th>Angle Name</th><th>Value (degrees)</th></tr>
     </thead>
-    <tbody id="hand-positions-table-reg">
-      <tr><td>wrist</td><td><input data-joint="wrist" data-axis="x"></td><td><input data-joint="wrist" data-axis="y"></td><td><input data-joint="wrist" data-axis="z"></td></tr>
-      <tr><td>thumb_tip</td><td><input data-joint="thumb_tip" data-axis="x"></td><td><input data-joint="thumb_tip" data-axis="y"></td><td><input data-joint="thumb_tip" data-axis="z"></td></tr>
-      <tr><td>index_tip</td><td><input data-joint="index_tip" data-axis="x"></td><td><input data-joint="index_tip" data-axis="y"></td><td><input data-joint="index_tip" data-axis="z"></td></tr>
-      <tr><td>middle_tip</td><td><input data-joint="middle_tip" data-axis="x"></td><td><input data-joint="middle_tip" data-axis="y"></td><td><input data-joint="middle_tip" data-axis="z"></td></tr>
-      <tr><td>ring_tip</td><td><input data-joint="ring_tip" data-axis="x"></td><td><input data-joint="ring_tip" data-axis="y"></td><td><input data-joint="ring_tip" data-axis="z"></td></tr>
-      <tr><td>pinky_tip</td><td><input data-joint="pinky_tip" data-axis="x"></td><td><input data-joint="pinky_tip" data-axis="y"></td><td><input data-joint="pinky_tip" data-axis="z"></td></tr>
+    <tbody id="hand-angles-table-reg">
+      <tr><td>Thumb MCP→IP</td><td><input data-angle="Thumb MCP→IP" type="number" min="0" max="180" placeholder="e.g. 161.44"></td></tr>
+      <tr><td>Thumb IP→Tip</td><td><input data-angle="Thumb IP→Tip" type="number" min="0" max="180" placeholder="e.g. 133.85"></td></tr>
+      <tr><td>Index MCP→PIP</td><td><input data-angle="Index MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 152.81"></td></tr>
+      <tr><td>Index PIP→DIP</td><td><input data-angle="Index PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 70.18"></td></tr>
+      <tr><td>Middle MCP→PIP</td><td><input data-angle="Middle MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 148.49"></td></tr>
+      <tr><td>Middle PIP→DIP</td><td><input data-angle="Middle PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 69.31"></td></tr>
+      <tr><td>Ring MCP→PIP</td><td><input data-angle="Ring MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 168.76"></td></tr>
+      <tr><td>Ring PIP→DIP</td><td><input data-angle="Ring PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 40.95"></td></tr>
+      <tr><td>Pinky MCP→PIP</td><td><input data-angle="Pinky MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 177.22"></td></tr>
+      <tr><td>Pinky PIP→DIP</td><td><input data-angle="Pinky PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 47.28"></td></tr>
     </tbody>
   </table>
 
+  <button id="demo-fill-btn" onclick="fillDemoData('reg')">Fill Demo Data</button>
   <button onclick="submitRegister()">Register</button>
 
   <!-- Login Form -->
   <h2>Login</h2>
   <input type="text" id="login-username" placeholder="Username" />
 
-  <h4>Hand Positions</h4>
+  <h4>Hand Angles</h4>
   <table>
     <thead>
-      <tr><th>Joint ID</th><th>X</th><th>Y</th><th>Z</th></tr>
+      <tr><th>Angle Name</th><th>Value (degrees)</th></tr>
     </thead>
-    <tbody id="hand-positions-table-login">
-      <tr><td>wrist</td><td><input data-joint="wrist" data-axis="x"></td><td><input data-joint="wrist" data-axis="y"></td><td><input data-joint="wrist" data-axis="z"></td></tr>
-      <tr><td>thumb_tip</td><td><input data-joint="thumb_tip" data-axis="x"></td><td><input data-joint="thumb_tip" data-axis="y"></td><td><input data-joint="thumb_tip" data-axis="z"></td></tr>
-      <tr><td>index_tip</td><td><input data-joint="index_tip" data-axis="x"></td><td><input data-joint="index_tip" data-axis="y"></td><td><input data-joint="index_tip" data-axis="z"></td></tr>
-      <tr><td>middle_tip</td><td><input data-joint="middle_tip" data-axis="x"></td><td><input data-joint="middle_tip" data-axis="y"></td><td><input data-joint="middle_tip" data-axis="z"></td></tr>
-      <tr><td>ring_tip</td><td><input data-joint="ring_tip" data-axis="x"></td><td><input data-joint="ring_tip" data-axis="y"></td><td><input data-joint="ring_tip" data-axis="z"></td></tr>
-      <tr><td>pinky_tip</td><td><input data-joint="pinky_tip" data-axis="x"></td><td><input data-joint="pinky_tip" data-axis="y"></td><td><input data-joint="pinky_tip" data-axis="z"></td></tr>
+    <tbody id="hand-angles-table-login">
+      <tr><td>Thumb MCP→IP</td><td><input data-angle="Thumb MCP→IP" type="number" min="0" max="180" placeholder="e.g. 161.44"></td></tr>
+      <tr><td>Thumb IP→Tip</td><td><input data-angle="Thumb IP→Tip" type="number" min="0" max="180" placeholder="e.g. 133.85"></td></tr>
+      <tr><td>Index MCP→PIP</td><td><input data-angle="Index MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 152.81"></td></tr>
+      <tr><td>Index PIP→DIP</td><td><input data-angle="Index PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 70.18"></td></tr>
+      <tr><td>Middle MCP→PIP</td><td><input data-angle="Middle MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 148.49"></td></tr>
+      <tr><td>Middle PIP→DIP</td><td><input data-angle="Middle PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 69.31"></td></tr>
+      <tr><td>Ring MCP→PIP</td><td><input data-angle="Ring MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 168.76"></td></tr>
+      <tr><td>Ring PIP→DIP</td><td><input data-angle="Ring PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 40.95"></td></tr>
+      <tr><td>Pinky MCP→PIP</td><td><input data-angle="Pinky MCP→PIP" type="number" min="0" max="180" placeholder="e.g. 177.22"></td></tr>
+      <tr><td>Pinky PIP→DIP</td><td><input data-angle="Pinky PIP→DIP" type="number" min="0" max="180" placeholder="e.g. 47.28"></td></tr>
     </tbody>
   </table>
 
+  <button id="demo-fill-btn-login" onclick="fillDemoData('login')">Fill Demo Data</button>
   <button onclick="submitLogin()">Login</button>
 
   <div id="result"></div>
@@ -62,7 +72,7 @@
   </div>
   
   <!-- Document Editor -->
-  <div id="editor" class="editor">
+  <div id="editor" class="editor" style="display: none;">
     <h2>Document Editor</h2>
     <input type="text" id="doc-title" placeholder="Document Title" />
     <textarea id="doc-content" placeholder="Document content..."></textarea>
@@ -71,31 +81,62 @@
   </div>
   
   <script>
-    function collectHandPositions(tableId) {
+    // Demo angle data (from your image)
+    const demoAngles = {
+      "Thumb MCP→IP": 161.44,
+      "Thumb IP→Tip": 133.85,
+      "Index MCP→PIP": 152.81,
+      "Index PIP→DIP": 70.18,
+      "Middle MCP→PIP": 148.49,
+      "Middle PIP→DIP": 69.31,
+      "Ring MCP→PIP": 168.76,
+      "Ring PIP→DIP": 40.95,
+      "Pinky MCP→PIP": 177.22,
+      "Pinky PIP→DIP": 47.28
+    };
+
+    // Fill form with demo data for testing
+    function fillDemoData(formType) {
+      const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
       const inputs = document.querySelectorAll(`#${tableId} input`);
-      const joints = {};
+      
+      inputs.forEach(input => {
+        const angleName = input.getAttribute('data-angle');
+        if (angleName in demoAngles) {
+          input.value = demoAngles[angleName];
+        }
+      });
+      
+      if (formType === 'reg') {
+        document.getElementById('reg-username').value = 'demo_angle_user';
+        document.getElementById('reg-gesture').value = 'peace_sign';
+      } else {
+        document.getElementById('login-username').value = 'demo_angle_user';
+      }
+    }
+
+    function collectAngleData(tableId) {
+      const inputs = document.querySelectorAll(`#${tableId} input`);
+      const angleData = {};
 
       inputs.forEach(input => {
-        const joint = input.getAttribute('data-joint');
-        const axis = input.getAttribute('data-axis');
+        const angleName = input.getAttribute('data-angle');
         const value = input.value.trim();
 
         if (!value) {
-          throw new Error(`Missing ${axis.toUpperCase()} value for ${joint}`);
+          throw new Error(`Missing value for ${angleName}`);
         }
 
         const floatVal = parseFloat(value);
         if (isNaN(floatVal)) {
-          throw new Error(`Invalid number for ${joint} ${axis}`);
+          throw new Error(`Invalid number for ${angleName}`);
         }
 
-        joints[joint] = joints[joint] || { joint_id: joint };
-        joints[joint][axis] = floatVal;
+        angleData[angleName] = floatVal;
       });
 
-      return Object.values(joints);
+      return angleData;
     }
-
 
     async function submitRegister() {
       const username = document.getElementById("reg-username").value.trim();
@@ -107,9 +148,9 @@
         return;
       }
 
-      let hand_positions;
+      let angle_data;
       try {
-        hand_positions = collectHandPositions("hand-positions-table-reg");
+        angle_data = collectAngleData("hand-angles-table-reg");
       } catch (err) {
         resultEl.textContent = err.message;
         return;
@@ -121,17 +162,15 @@
         body: JSON.stringify({
           username,
           gesture_name,
-          hand_positions
+          angle_data
         })
       });
-
 
       const data = await res.json();
       resultEl.textContent = res.ok
         ? `Registered! Gesture ID: ${data.gesture_password_id}`
         : `Error: ${data.error}`;
     }
-
 
     async function submitLogin() {
       const username = document.getElementById("login-username").value.trim();
@@ -142,9 +181,9 @@
         return;
       }
 
-      let hand_positions;
+      let angle_data;
       try {
-        hand_positions = collectHandPositions("hand-positions-table-login");
+        angle_data = collectAngleData("hand-angles-table-login");
       } catch (err) {
         resultEl.textContent = err.message;
         return;
@@ -155,16 +194,100 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username,
-          gesture_data: hand_positions
+          angle_data
         })
       });
 
       const data = await res.json();
-      resultEl.textContent = res.ok
-        ? data.message + (data.confidence ? ` (Confidence: ${data.confidence.toFixed(2)})` : "")
-        : `Error: ${data.error}`;
+      
+      if (res.ok) {
+        resultEl.textContent = data.message + (data.confidence ? ` (Confidence: ${data.confidence.toFixed(2)})` : "");
+        
+        // Load documents
+        loadDocuments(username);
+      } else {
+        resultEl.textContent = `Error: ${data.error}`;
+      }
     }
 
+    async function loadDocuments(username) {
+      const res = await fetch(`/documents?username=${username}`);
+      if (res.ok) {
+        const data = await res.json();
+        const docListEl = document.getElementById("doc-list");
+        docListEl.innerHTML = "";
+        
+        if (data.documents.length === 0) {
+          docListEl.innerHTML = "<p>No documents found. Create a new one!</p>";
+        } else {
+          data.documents.forEach(doc => {
+            const docEl = document.createElement("div");
+            docEl.className = "document-item";
+            docEl.innerHTML = `
+              <h3>${doc.title}</h3>
+              <p>Last updated: ${new Date(doc.updated_at).toLocaleString()}</p>
+              <button onclick="openDocument('${doc.id}', '${username}')">Open</button>
+            `;
+            docListEl.appendChild(docEl);
+          });
+        }
+        
+        document.getElementById("document-section").style.display = "block";
+      }
+    }
+
+    let currentDocId = null;
+    let currentUsername = null;
+
+    async function openDocument(docId, username) {
+      const res = await fetch(`/documents/${docId}?username=${username}`);
+      if (res.ok) {
+        const doc = await res.json();
+        document.getElementById("doc-title").value = doc.title;
+        document.getElementById("doc-content").value = doc.content;
+        document.getElementById("editor").style.display = "block";
+        
+        currentDocId = docId;
+        currentUsername = username;
+      }
+    }
+
+    function closeEditor() {
+      document.getElementById("editor").style.display = "none";
+      currentDocId = null;
+    }
+
+    async function saveDocument() {
+      if (!currentDocId || !currentUsername) return;
+      
+      const content = document.getElementById("doc-content").value;
+      
+      const res = await fetch(`/documents/${currentDocId}?username=${currentUsername}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content })
+      });
+      
+      if (res.ok) {
+        alert("Document saved successfully!");
+        loadDocuments(currentUsername);
+      } else {
+        alert("Error saving document");
+      }
+    }
+
+    async function createNewDocument() {
+      const username = document.getElementById("login-username").value.trim();
+      if (!username) return;
+      
+      const title = prompt("Enter document title:");
+      if (!title) return;
+      
+      // You'll need to create a backend endpoint for this
+      // For now, we'll just refresh the document list
+      alert("New document creation would happen here");
+      loadDocuments(username);
+    }
   </script>
 </body>
 </html>
