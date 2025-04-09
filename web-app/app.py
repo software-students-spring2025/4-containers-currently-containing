@@ -24,7 +24,7 @@ def about():
 
 @app.route('/loginregister')
 def serve_index():
-    return render_template('./registerlogin.html')
+    return send_from_directory('./templates', 'registerlogin.html')
 
 # Register Route
 @app.route('/register', methods=['POST'])
