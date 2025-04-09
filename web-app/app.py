@@ -18,10 +18,6 @@ def root():
 def home():
     return render_template('index.html')
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
 @app.route('/loginregister')
 def serve_index():
     return send_from_directory('./templates', 'registerlogin.html')
