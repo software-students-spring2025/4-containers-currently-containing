@@ -7,9 +7,9 @@ ENV PYTHONUNBUFFERED=1
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    ffmpeg \
     libglib2.0-0 \
     libsm6 \
+    libgl1 \
     libxext6 \
     libxrender-dev \
     && rm -rf /var/lib/apt/lists/*

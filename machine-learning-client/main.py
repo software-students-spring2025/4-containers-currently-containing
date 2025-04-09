@@ -3,6 +3,15 @@ import cv2
 import time
 import mediapipe as mp
 import numpy as np
+from angle_api import latest_angles, angle_lock
+from threading import Thread
+from flask import Flask
+
+def run_api():
+    from angle_api import app
+    app.run(host="0.0.0.0", port=5050)
+
+
 
 def calculate_angle(a, b, c):
     """
@@ -54,9 +63,12 @@ if __name__ == "__main__":
     mp_drawing = mp.solutions.drawing_utils
 
     # Replace with your own video source if necessary
-    cap = cv2.VideoCapture("http://host.docker.internal:8554/")
+    cap = cv2.VideoCapture(0)
+
     
     print("Starting real-time hand angle detection...")
+
+    Thread(target=run_api, daemon=True).start()
 
     while cap.isOpened():
         success, image = cap.read()
@@ -75,6 +87,10 @@ if __name__ == "__main__":
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
                 angles = extract_hand_angles(hand_landmarks.landmark)
+
+                with angle_lock:
+                    latest_angles.clear()
+                    latest_angles.extend(angles)
                 
                 labels = [
                     "Thumb MCP→IP", "Thumb IP→Tip",
@@ -94,3 +110,4 @@ if __name__ == "__main__":
 
     cap.release()
     print("Finished.")
+    
