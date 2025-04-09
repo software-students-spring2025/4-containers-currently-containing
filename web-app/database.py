@@ -2,19 +2,22 @@ from flask_pymongo import PyMongo
 import os
 from bson.objectid import ObjectId
 from datetime import datetime
+import json
 
 # MongoDB client will be initialized with the Flask app
 mongo = None
+mock_db = None
 
 def init_app(app):
     """Initialize the MongoDB connection with the Flask app"""
-    global mongo
-    # real database here
-    #app.config['MONGO_URI'] = os.environ.get('MONGODB_URI', 
-                                          #'mongodb://admin:secretpassword@localhost:27017/gesture_auth?authSource=admin')
+    global mongo, mock_db
     
-    # mock database here
-    app.config['MONGO_URI'] = "mongodb://localhost:27017/gesture_auth_mock"
+    # Toggle between real and mock database by commenting/uncommenting
+    
+    # REAL DATABASE CONNECTION
+    app.config['MONGO_URI'] = os.environ.get('MONGODB_URI', 
+                                         'mongodb://admin:secretpassword@localhost:27017/gesture_auth?authSource=admin')
+    
     
     mongo = PyMongo(app)
     print("Connected to:", mongo.db.name)

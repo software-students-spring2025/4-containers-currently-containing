@@ -9,7 +9,7 @@ It prints labeled joint angles (like `Thumb MCP→IP: 145.2°`) as you move your
 ## 📁 Project Structure
 
 ```
-hand-angle-detector/
+machine-read/
 ├── main.py              # Real-time hand angle detector (runs in Docker)
 ├── webcam_streamer.py   # Flask webcam streaming server (runs on host)
 ├── Dockerfile           # Python 3.11 + MediaPipe + OpenCV
@@ -70,11 +70,3 @@ Thumb IP→Tip: 147.75°
 - MediaPipe detects 21 hand landmarks
 - Angles between joints are calculated using vector geometry
 - Output is updated in real time for the first detected hand
-
----
-
-## 🐳 Why Docker?
-
-- Zero setup: no Python environment needed
-- Clean, reproducible environment for everyone
-- Cross-platform support
