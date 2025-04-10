@@ -68,10 +68,8 @@
     </tbody>
   </table>
 
-  <button onclick="getLiveAngles('reg')">Get Current Hand Angles</button>
+  <button onclick="fillDemoData('reg')">Fill Demo Data</button>
   <button onclick="submitRegister()">Register</button>
-
-  <div id="register-result"></div>
 
   <!-- Login Form -->
   <h2>Login</h2>
@@ -129,10 +127,10 @@
     </tbody>
   </table>
 
-  <button onclick="getLiveAngles('login')">Get Current Hand Angles</button>
+  <button onclick="fillDemoData('login')">Fill Demo Data</button>
   <button onclick="submitLogin()">Login</button>
 
-  <div id="login-result"></div>
+  <div id="result"></div>
 
   <!-- Document List (shows after login) -->
   <div id="document-section" style="display: none;">
@@ -149,225 +147,6 @@
     <button onclick="saveDocument()">Save Document</button>
     <button onclick="closeEditor()">Close</button>
   </div>
-
-  <script>
-    function collectAngleData(tableId) {
-      const inputs = document.querySelectorAll(`#${tableId} input`);
-      const angleData = {};
-
-      inputs.forEach(input => {
-        const angleName = input.getAttribute('data-angle');
-        const value = input.value.trim();
-
-        if (!value) {
-          throw new Error(`Missing value for ${angleName}`);
-        }
-
-        const floatVal = parseFloat(value);
-        if (isNaN(floatVal)) {
-          throw new Error(`Invalid number for ${angleName}`);
-        }
-
-        angleData[angleName] = floatVal;
-      });
-
-      return angleData;
-    }
-
-
-    async function getLiveAngles(formType) {
-      const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
-      const resultEl = document.getElementById(formType === 'reg' ? 'register-result' : 'login-result');
-
-      try {
-        const response = await fetch("/api/hand-angles");
-        const data = await response.json();
-
-        if (!data.hand_present) {
-          resultEl.textContent = "🖐️ Hand is not in view.";
-          return;
-        }
-
-        const labels = [
-          "Thumb MCP→IP", "Thumb IP→Tip",
-          "Index MCP→PIP", "Index PIP→DIP",
-          "Middle MCP→PIP", "Middle PIP→DIP",
-          "Ring MCP→PIP", "Ring PIP→DIP",
-          "Pinky MCP→PIP", "Pinky PIP→DIP"
-        ];
-
-        const inputs = document.querySelectorAll(`#${tableId} input`);
-        inputs.forEach(input => {
-          const label = input.getAttribute('data-angle');
-          const index = labels.indexOf(label);
-          const angle = data.angles[index];
-
-          if (index !== -1 && angle !== null && angle !== undefined) {
-            input.value = angle.toFixed(2);
-          } else {
-            input.value = ""; // Clear the input if no valid data
-          }
-        });
-
-        resultEl.textContent = "✅ Hand angles updated!";
-      } catch (err) {
-        console.error("Error fetching hand angles:", err);
-        resultEl.textContent = "❌ Could not connect to hand tracking system.";
-      }
-    }
-
-
-    async function submitRegister() {
-      const username = document.getElementById("reg-username").value.trim();
-      const gesture_name = document.getElementById("reg-gesture").value.trim();
-      const resultEl = document.getElementById("result");
-
-      if (!username || !gesture_name) {
-        resultEl.textContent = "Please fill in all required fields.";
-        return;
-      }
-
-      let angle_data;
-      try {
-        angle_data = collectAngleData("hand-angles-table-reg");
-      } catch (err) {
-        resultEl.textContent = err.message;
-        return;
-      }
-
-      const res = await fetch("/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          gesture_name,
-          angle_data
-        })
-      });
-
-      const data = await res.json();
-      resultEl.textContent = res.ok
-        ? `Registered! Gesture ID: ${data.gesture_password_id}`
-        : `Error: ${data.error}`;
-    }
-
-    async function submitLogin() {
-      const username = document.getElementById("login-username").value.trim();
-      const resultEl = document.getElementById("result");
-
-      if (!username) {
-        resultEl.textContent = "Username is required.";
-        return;
-      }
-
-      let angle_data;
-      try {
-        angle_data = collectAngleData("hand-angles-table-login");
-      } catch (err) {
-        resultEl.textContent = err.message;
-        return;
-      }
-
-      const res = await fetch("/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          angle_data
-        })
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        resultEl.textContent = data.message + (data.confidence ? ` (Confidence: ${data.confidence.toFixed(2)})` : "");
-
-        // Load documents
-        loadDocuments(username);
-      } else {
-        resultEl.textContent = `Error: ${data.error}`;
-      }
-    }
-
-    async function loadDocuments(username) {
-      const res = await fetch(`/documents?username=${username}`);
-      if (res.ok) {
-        const data = await res.json();
-        const docListEl = document.getElementById("doc-list");
-        docListEl.innerHTML = "";
-
-        if (data.documents.length === 0) {
-          docListEl.innerHTML = "<p>No documents found. Create a new one!</p>";
-        } else {
-          data.documents.forEach(doc => {
-            const docEl = document.createElement("div");
-            docEl.className = "document-item";
-            docEl.innerHTML = `
-              <h3>${doc.title}</h3>
-              <p>Last updated: ${new Date(doc.updated_at).toLocaleString()}</p>
-              <button onclick="openDocument('${doc.id}', '${username}')">Open</button>
-            `;
-            docListEl.appendChild(docEl);
-          });
-        }
-
-        document.getElementById("document-section").style.display = "block";
-      }
-    }
-
-    let currentDocId = null;
-    let currentUsername = null;
-
-    async function openDocument(docId, username) {
-      const res = await fetch(`/documents/${docId}?username=${username}`);
-      if (res.ok) {
-        const doc = await res.json();
-        document.getElementById("doc-title").value = doc.title;
-        document.getElementById("doc-content").value = doc.content;
-        document.getElementById("editor").style.display = "block";
-
-        currentDocId = docId;
-        currentUsername = username;
-      }
-    }
-
-    function closeEditor() {
-      document.getElementById("editor").style.display = "none";
-      currentDocId = null;
-    }
-
-    async function saveDocument() {
-      if (!currentDocId || !currentUsername) return;
-
-      const content = document.getElementById("doc-content").value;
-
-      const res = await fetch(`/documents/${currentDocId}?username=${currentUsername}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content })
-      });
-
-      if (res.ok) {
-        alert("Document saved successfully!");
-        loadDocuments(currentUsername);
-      } else {
-        alert("Error saving document");
-      }
-    }
-
-    async function createNewDocument() {
-      const username = document.getElementById("login-username").value.trim();
-      if (!username) return;
-
-      const title = prompt("Enter document title:");
-      if (!title) return;
-
-      // You'll need to create a backend endpoint for this
-      // For now, we'll just refresh the document list
-      alert("New document creation would happen here");
-      loadDocuments(username);
-    }
-  </script>
 </body>
 
 </html>
