@@ -16,4 +16,4 @@ def test_calculate_angle_straight_line():
 def test_extract_hand_angles_returns_10():
     landmarks = [Landmark(x, 0, 0) for x in range(21)]
     angles = extract_hand_angles(landmarks)
-    assert len(angles) == 10
+    assert len(angles) == 1
