@@ -62,14 +62,26 @@ git clone https://github.com/software-students-spring2025/4-containers-currently
 cd 4-containers-currently-containing
 ```
 
-2. Start all services with Docker Compose:
+2. Start the webcam streamer (on your host)
+cd into machine learning client dir
+```bash
+cd machine-learning-client
+```
+start webcam streaming
+```bash
+python webcam_streamer.py
+```
+
+This will start a webcam MJPEG stream at `http://localhost:8554`.
+
+3. Start all services with Docker Compose:
 ```bash
 docker compose up -d
 ```
 
-3. Access the web application:
+4. Access the web application:
 ```bash
-http://localhost:5001
+http://localhost:5055
 ```
 
 ### Running Individual Components
