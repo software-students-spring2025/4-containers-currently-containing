@@ -24,6 +24,8 @@ services:
     container_name: gesture_ml_client
     depends_on:
       - mongodb
+    ports:
+      - "5050:5050"
     volumes:
       - ./machine-learning-client:/app
     environment:
@@ -37,7 +39,7 @@ services:
     build: ./web-app
     container_name: gesture_web_app
     ports:
-      - "5055:5000"
+      - "5055:5001"
     depends_on:
       - mongodb
       - ml-client

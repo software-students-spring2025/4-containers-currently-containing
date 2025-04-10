@@ -4,3 +4,4 @@ pymongo
 pytest
 pytest-flask
 numpy
+requests

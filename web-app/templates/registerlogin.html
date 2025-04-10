@@ -179,7 +179,7 @@
       const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
 
       try {
-        const response = await fetch("http://localhost:5050/hand-angles");
+        const response = await fetch("/api/hand-angles");
         const data = await response.json();
 
         if (!data.hand_present) {
