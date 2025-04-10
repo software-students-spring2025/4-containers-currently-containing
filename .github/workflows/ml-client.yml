@@ -34,4 +34,4 @@ jobs:
     
     - name: Run machine-learning tests
       working-directory: machine-learning-client
-      run: pytest tests/
+      run: PYTHONPATH=. pytest tests/
