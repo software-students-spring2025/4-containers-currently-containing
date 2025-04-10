@@ -106,7 +106,7 @@ if __name__ == "__main__":
         docs_success = test_get_documents()
         
         print("\n=== Test Summary ===")
-        print(f"Registration: {'✅ SUCCESS' if user_id else '⚠️ FAILED/EXISTS'}")
+        #print(f"Registration: {'✅ SUCCESS' if user_id else '⚠️ FAILED/EXISTS'}")
         print(f"Login (exact): {'✅ SUCCESS' if login_success else '❌ FAILED'}")
         print(f"Login (similar): {'✅ SUCCESS' if login_similar else '❌ FAILED'}")
         print(f"Document access: {'✅ SUCCESS' if docs_success else '❌ FAILED'}")
