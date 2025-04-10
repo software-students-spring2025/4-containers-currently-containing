@@ -10,4 +10,8 @@ angle_lock = Lock()
 @app.route("/hand-angles", methods=["GET"])
 def get_hand_angles():
     with angle_lock:
-        return jsonify(latest_angles)
+        hand_present = all(a is not None for a in latest_angles)
+        return jsonify({
+            "hand_present": int(hand_present),
+            "angles": latest_angles
+        })

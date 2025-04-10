@@ -91,7 +91,7 @@ if __name__ == "__main__":
                 with angle_lock:
                     latest_angles.clear()
                     latest_angles.extend(angles)
-                
+
                 labels = [
                     "Thumb MCP→IP", "Thumb IP→Tip",
                     "Index MCP→PIP", "Index PIP→DIP",
@@ -104,6 +104,12 @@ if __name__ == "__main__":
                 for label, angle in zip(labels, angles):
                     print(f"{label}: {angle:.2f}°")
                 print("-" * 40)
+        else:
+            # No hand detected → set angles to None
+            with angle_lock:
+                latest_angles.clear()
+                latest_angles.extend([None] * 10)
+
         
         # Optional small delay to avoid pegging the CPU
         time.sleep(0.01)

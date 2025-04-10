@@ -1,36 +1,51 @@
 // Demo angle data 
-const demoAngles = {
-  "Thumb MCP→IP": 161.44,
-  "Thumb IP→Tip": 133.85,
-  "Index MCP→PIP": 152.81,
-  "Index PIP→DIP": 70.18,
-  "Middle MCP→PIP": 148.49,
-  "Middle PIP→DIP": 69.31,
-  "Ring MCP→PIP": 168.76,
-  "Ring PIP→DIP": 40.95,
-  "Pinky MCP→PIP": 177.22,
-  "Pinky PIP→DIP": 47.28
-};
+// const demoAngles = {
+//   "Thumb MCP→IP": 161.44,
+//   "Thumb IP→Tip": 133.85,
+//   "Index MCP→PIP": 152.81,
+//   "Index PIP→DIP": 70.18,
+//   "Middle MCP→PIP": 148.49,
+//   "Middle PIP→DIP": 69.31,
+//   "Ring MCP→PIP": 168.76,
+//   "Ring PIP→DIP": 40.95,
+//   "Pinky MCP→PIP": 177.22,
+//   "Pinky PIP→DIP": 47.28
+// };
 
 // Fill form with demo data for testing
-function fillDemoData(formType) {
+async function getLiveAngles(formType) {
   const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
-  const inputs = document.querySelectorAll(`#${tableId} input`);
-  
-  inputs.forEach(input => {
-    const angleName = input.getAttribute('data-angle');
-    if (angleName in demoAngles) {
-      input.value = demoAngles[angleName];
-    }
-  });
-  
-  if (formType === 'reg') {
-    document.getElementById('reg-username').value = 'demo_angle_user';
-    document.getElementById('reg-gesture').value = 'peace_sign';
-  } else {
-    document.getElementById('login-username').value = 'demo_angle_user';
+
+  try {
+    const response = await fetch("http://localhost:5050/hand-angles");
+    if (!response.ok) throw new Error("Failed to fetch angles");
+    const angleArray = await response.json();
+
+    const labels = [
+      "Thumb MCP→IP", "Thumb IP→Tip",
+      "Index MCP→PIP", "Index PIP→DIP",
+      "Middle MCP→PIP", "Middle PIP→DIP",
+      "Ring MCP→PIP", "Ring PIP→DIP",
+      "Pinky MCP→PIP", "Pinky PIP→DIP"
+    ];
+
+    // Fill inputs based on labels
+    const inputs = document.querySelectorAll(`#${tableId} input`);
+    inputs.forEach(input => {
+      const label = input.getAttribute('data-angle');
+      const index = labels.indexOf(label);
+      if (index !== -1 && angleArray[index] !== undefined) {
+        input.value = angleArray[index].toFixed(2);
+      }
+    });
+
+    document.getElementById("result").textContent = "✅ Hand angles updated from live feed!";
+  } catch (err) {
+    console.error("Error fetching hand angles:", err);
+    document.getElementById("result").textContent = "❌ Could not fetch live hand data.";
   }
 }
+
 
 function collectAngleData(tableId) {
   const inputs = document.querySelectorAll(`#${tableId} input`);
