@@ -20,6 +20,10 @@ jobs:
       run: |
           docker build -t ml-client-test ./web-app
 
+    - name: Install dependencies
+      working-directory: web-app
+      run: pip install -r requirements.txt
+
     - name: Run web-app tests
       working-directory: web-app
       run: pytest tests/
