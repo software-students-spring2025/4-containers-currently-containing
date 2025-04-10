@@ -1,4 +1,6 @@
 ![Lint-free](https://github.com/nyu-software-engineering/containerized-app-exercise/actions/workflows/lint.yml/badge.svg)
+![ML Client - CI](https://github.com/software-students-spring2025/4-containers-currently-containing/actions/workflows/ml-client.yml/badge.svg)
+![Web App - CI](https://github.com/software-students-spring2025/4-containers-currently-containing/actions/workflows/web-app.yml/badge.svg)
 
 # Containerized App Exercise
 
@@ -77,4 +79,44 @@ A test script is provided at `web-app/test_db.py`. To run it:
 2. Navigate to the web-app directory: cd web-app
 3. Run the test script: python test_db.py
 
+### Running the Hand Detector
 
+Install dependencies (for the host):
+```bash
+pip install flask opencv-python
+```
+
+---
+
+## 🚀 How to Run
+
+### 1. Start the webcam streamer (on your host)
+
+cd into machine-learning-client
+
+```bash
+python webcam_streamer.py
+```
+
+This will start a webcam MJPEG stream at `http://localhost:8554`.
+
+### 2. Build the Docker container
+
+```bash
+docker build -t hand-angle-detector .
+```
+
+### 3. Run the container
+
+```bash
+docker run -it hand-angle-detector
+```
+
+You should see hand joint angle outputs like:
+
+```
+🖐️ Hand Angles:
+Thumb MCP→IP: 149.84°
+Thumb IP→Tip: 147.75°
+...
+```

@@ -16,11 +16,11 @@ RUN apt-get update && apt-get install -y \
 
 # Install Python packages
 RUN pip install --upgrade pip
-RUN pip install mediapipe opencv-python-headless numpy
+RUN pip install mediapipe opencv-python-headless numpy flask flask-cors
 
 # Copy your app code into the container
 WORKDIR /app
-COPY main.py .
+COPY main.py angle_api.py .
 
 # Default command
 CMD ["python", "main.py"]
