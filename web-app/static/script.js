@@ -12,6 +12,46 @@ const demoAngles = {
   "Pinky PIP→DIP": 47.28
 };
 
+async function getLiveAngles(formType) {
+  const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
+
+  try {
+    const response = await fetch("/api/hand-angles");
+    const data = await response.json();
+
+    if (!data.hand_present) {
+      document.getElementById("result").textContent = "🖐️ Hand is not in view.";
+      return;
+    }
+
+    const labels = [
+      "Thumb MCP→IP", "Thumb IP→Tip",
+      "Index MCP→PIP", "Index PIP→DIP",
+      "Middle MCP→PIP", "Middle PIP→DIP",
+      "Ring MCP→PIP", "Ring PIP→DIP",
+      "Pinky MCP→PIP", "Pinky PIP→DIP"
+    ];
+
+    const inputs = document.querySelectorAll(`#${tableId} input`);
+    inputs.forEach(input => {
+      const label = input.getAttribute('data-angle');
+      const index = labels.indexOf(label);
+      const angle = data.angles[index];
+
+      if (index !== -1 && angle !== null && angle !== undefined) {
+        input.value = angle.toFixed(2);
+      } else {
+        input.value = ""; // Clear the input if no valid data
+      }
+    });
+
+    document.getElementById("result").textContent = "✅ Hand angles updated!";
+  } catch (err) {
+    console.error("Error fetching hand angles:", err);
+    document.getElementById("result").textContent = "❌ Could not connect to hand tracking system.";
+  }
+}
+
 // Fill form with demo data for testing
 function fillDemoData(formType) {
   const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
