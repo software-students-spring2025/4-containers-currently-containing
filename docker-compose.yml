@@ -24,10 +24,10 @@ services:
     container_name: gesture_ml_client
     depends_on:
       - mongodb
+    ports:
+      - "5050:5050"
     volumes:
       - ./machine-learning-client:/app
-    devices:
-      - "/dev/video0:/dev/video0"  # Access to webcam (may need adjustment for different systems)
     environment:
       - MONGODB_URI=mongodb://admin:secretpassword@mongodb:27017/gesture_auth?authSource=admin
     networks:
@@ -39,7 +39,7 @@ services:
     build: ./web-app
     container_name: gesture_web_app
     ports:
-      - "5000:5000"
+      - "5055:5001"
     depends_on:
       - mongodb
       - ml-client

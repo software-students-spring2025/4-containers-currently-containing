@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory, redirect, render_template
+import requests
 from database import (
     init_app, create_user, get_user_by_username,
     create_gesture_password, get_user_gesture_password,
@@ -21,6 +22,18 @@ def home():
 @app.route('/loginregister')
 def serve_index():
     return send_from_directory('./templates', 'registerlogin.html')
+
+@app.route('/api/hand-angles')
+def proxy_hand_angles():
+    try:
+        # Internal Docker hostname works here
+        response = requests.get("http://gesture_ml_client:5050/hand-angles", timeout=1)
+        return jsonify(response.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({
+            'error': 'Could not reach ML client',
+            'details': str(e)
+        }), 500
 
 # Register Route
 @app.route('/register', methods=['POST'])
