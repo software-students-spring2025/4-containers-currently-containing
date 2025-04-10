@@ -71,7 +71,7 @@
   <button onclick="getLiveAngles('reg')">Get Current Hand Angles</button>
   <button onclick="submitRegister()">Register</button>
 
-  <div id="result"></div>
+  <div id="register-result"></div>
 
   <!-- Login Form -->
   <h2>Login</h2>
@@ -129,10 +129,10 @@
     </tbody>
   </table>
 
-  <button id="demo-fill-btn-login" onclick="fillDemoData('login')">Fill Demo Data</button>
+  <button onclick="getLiveAngles('login')">Get Current Hand Angles</button>
   <button onclick="submitLogin()">Login</button>
 
-  <div id="result"></div>
+  <div id="login-result"></div>
 
   <!-- Document List (shows after login) -->
   <div id="document-section" style="display: none;">
@@ -177,13 +177,14 @@
 
     async function getLiveAngles(formType) {
       const tableId = formType === 'reg' ? 'hand-angles-table-reg' : 'hand-angles-table-login';
+      const resultEl = document.getElementById(formType === 'reg' ? 'register-result' : 'login-result');
 
       try {
         const response = await fetch("/api/hand-angles");
         const data = await response.json();
 
         if (!data.hand_present) {
-          document.getElementById("result").textContent = "🖐️ Hand is not in view.";
+          resultEl.textContent = "🖐️ Hand is not in view.";
           return;
         }
 
@@ -208,14 +209,12 @@
           }
         });
 
-        document.getElementById("result").textContent = "✅ Hand angles updated!";
+        resultEl.textContent = "✅ Hand angles updated!";
       } catch (err) {
         console.error("Error fetching hand angles:", err);
-        document.getElementById("result").textContent = "❌ Could not connect to hand tracking system.";
+        resultEl.textContent = "❌ Could not connect to hand tracking system.";
       }
     }
-
-
 
 
     async function submitRegister() {
