@@ -26,7 +26,7 @@ def serve_index():
 @app.route('/api/hand-angles')
 def proxy_hand_angles():
     try:
-        # Internal Docker hostname works here
+        #Internal Docker hostname works here
         response = requests.get("http://gesture_ml_client:5050/hand-angles", timeout=1)
         return jsonify(response.json())
     except requests.exceptions.RequestException as e:
