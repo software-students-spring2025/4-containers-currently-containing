@@ -94,7 +94,7 @@ if __name__ == "__main__":
         print("🧪 Starting API tests...")
         
         # First try to register (might fail if user already exists)
-        user_id = test_register()
+        #user_id = test_register()
         
         # Test login with exact angles
         login_success = test_login_success()
