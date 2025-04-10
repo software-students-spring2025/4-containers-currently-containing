@@ -63,7 +63,9 @@ if __name__ == "__main__":
     mp_drawing = mp.solutions.drawing_utils
 
     # Replace with your own video source if necessary
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture("http://host.docker.internal:8554")
+
+
 
     
     print("Starting real-time hand angle detection...")
