@@ -7,6 +7,8 @@ click
 contourpy
 cycler
 dill
+flask
+flask_cors
 flatbuffers
 fonttools
 isort
