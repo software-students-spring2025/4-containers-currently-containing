@@ -7,9 +7,16 @@ mongo = init_app(app)
 # Test creating a user
 with app.app_context():
     try:
-        # Create a test user
-        user_id = create_user('test_user', 'test@example.com')
-        print(f"Created user with ID: {user_id}")
+        # Check if the test user already exists
+        existing_user = get_user_by_username('test_user')
+        
+        if existing_user:
+            print(f"Test user already exists with ID: {existing_user['_id']}")
+            user_id = existing_user['_id']
+        else:
+            # Create the test user only if it doesn't exist
+            user_id = create_user('test_user', 'test@example.com')
+            print(f"Created new test user with ID: {user_id}")
         
         # Retrieve the user
         user = get_user_by_username('test_user')

@@ -1,8 +1,10 @@
+
 from flask_pymongo import PyMongo
 import os
 from bson.objectid import ObjectId
 from datetime import datetime
 import json
+import numpy as np
 
 # MongoDB client will be initialized with the Flask app
 mongo = None
@@ -44,32 +46,47 @@ def get_user_by_username(username):
     return mongo.db.users.find_one({'username': username})
 
 # Gesture password functions
-def create_gesture_password(user_id, gesture_name, model_path=None, confidence_threshold=0.85, hand_positions=None):
+def create_gesture_password(user_id, gesture_name, angle_data=None, confidence_threshold=0.85):
     """
-    Create a gesture password for a user
+    Create a gesture password for a user using hand angle data
     
     Parameters:
     - user_id: User ID
     - gesture_name: Name for this gesture
-    - model_path: Path to teachable machine model (optional)
+    - angle_data: Dictionary with angle measurements for all joints
     - confidence_threshold: Minimum confidence level to accept the gesture
-    - hand_positions: List of dictionaries with joint_id, x, y, z coordinates (optional)
     """
     gesture_data = {
         'gesture_name': gesture_name,
         'created_at': datetime.utcnow(),
         'updated_at': datetime.utcnow(),
-        'confidence_threshold': confidence_threshold
+        'confidence_threshold': confidence_threshold,
+        'storage_type': 'angles'
     }
     
-    # Add either model path or hand positions depending on what's provided
-    if hand_positions:
-        gesture_data['hand_positions'] = hand_positions
-        gesture_data['storage_type'] = 'positions'
+    # Store the angle data
+    if angle_data:
+        # Ensure we have all 10 required angles
+        required_angles = [
+            "Thumb MCP→IP", "Thumb IP→Tip",
+            "Index MCP→PIP", "Index PIP→DIP",
+            "Middle MCP→PIP", "Middle PIP→DIP",
+            "Ring MCP→PIP", "Ring PIP→DIP",
+            "Pinky MCP→PIP", "Pinky PIP→DIP"
+        ]
+        
+        # Clean up and validate angle data
+        clean_angles = {}
+        for angle_name in required_angles:
+            if angle_name in angle_data:
+                clean_angles[angle_name] = float(angle_data[angle_name])
+            else:
+                # Use a default value or raise an error
+                clean_angles[angle_name] = 0.0
+                
+        gesture_data['angle_data'] = clean_angles
     else:
-        gesture_data['model_type'] = 'teachable_machine'
-        gesture_data['gesture_model_path'] = model_path
-        gesture_data['storage_type'] = 'model'
+        raise ValueError("Angle data is required for gesture password creation")
     
     gesture_id = mongo.db.gesture_passwords.insert_one({
         'user_id': ObjectId(user_id),
@@ -92,49 +109,48 @@ def get_user_gesture_password(user_id):
         'active': True
     })
 
-def verify_gesture_positions(stored_positions, current_positions, threshold):
+def verify_gesture_angles(stored_angles, current_angles, threshold):
     """
-    Verify hand positions against stored positions
+    Verify hand angles against stored angles
     
     Parameters:
-    - stored_positions: List of dictionaries with joint_id, x, y, z from database
-    - current_positions: List of dictionaries with joint_id, x, y, z from user
+    - stored_angles: Dictionary with angle values from database
+    - current_angles: Dictionary with angle values from user
     - threshold: Similarity threshold (0.0-1.0) for authentication
     
     Returns:
     - (success, confidence): Tuple with boolean success and float confidence score
     """
-    # Convert lists to dictionaries for easier comparison
-    stored_pos_dict = {pos['joint_id']: pos for pos in stored_positions}
-    current_pos_dict = {pos['joint_id']: pos for pos in current_positions}
+    # Calculate the difference between stored and current angles
+    angle_differences = []
+    max_possible_difference = 180.0  # Maximum possible angle difference in degrees
     
-    # Calculate similarity score
-    total_distance = 0
-    joint_count = 0
-    
-    for joint_id, stored_pos in stored_pos_dict.items():
-        if joint_id in current_pos_dict:
-            current_pos = current_pos_dict[joint_id]
+    # Compare each angle
+    for angle_name, stored_value in stored_angles.items():
+        if angle_name in current_angles:
+            current_value = float(current_angles[angle_name])
             
-            # Calculate Euclidean distance between points
-            distance = (
-                (stored_pos['x'] - current_pos['x'])**2 +
-                (stored_pos['y'] - current_pos['y'])**2 +
-                (stored_pos.get('z', 0) - current_pos.get('z', 0))**2
-            )**0.5
-            
-            total_distance += distance
-            joint_count += 1
+            # Calculate absolute difference in degrees
+            diff = abs(stored_value - current_value)
+            # Handle wrap-around (e.g., 350° vs 10° should be 20° difference, not 340°)
+            if diff > 180.0:
+                diff = 360.0 - diff
+                
+            angle_differences.append(diff)
     
-    if joint_count == 0:
+    if not angle_differences:
         return False, 0.0
     
-    # Calculate average distance and convert to similarity score (1.0 = identical)
-    avg_distance = total_distance / joint_count
+    # Calculate average difference and convert to similarity score
+    avg_difference = sum(angle_differences) / len(angle_differences)
     
-    # Normalize distance to confidence score (assuming max distance of 2.0 for fully normalized coordinates)
-    max_possible_distance = 2.0  # Maximum possible distance in a normalized 3D space
-    confidence = max(0.0, 1.0 - (avg_distance / max_possible_distance))
+    # Normalize difference to confidence score (1.0 = identical)
+    # Assuming max allowable difference is 45 degrees for a "match"
+    max_allowable_diff = 45.0
+    confidence = max(0.0, 1.0 - (avg_difference / max_allowable_diff))
+    
+    # Cap confidence at 1.0
+    confidence = min(1.0, confidence)
     
     # Check if confidence exceeds threshold
     success = confidence >= threshold
@@ -147,7 +163,7 @@ def verify_gesture(user_id, gesture_data):
     
     Parameters:
     - user_id: User ID
-    - gesture_data: Either model result confidence or hand positions
+    - gesture_data: Dictionary with angle measurements or numerical confidence score
     
     Returns:
     - (success, confidence): Tuple with boolean success and float confidence score
@@ -160,10 +176,10 @@ def verify_gesture(user_id, gesture_data):
     threshold = gesture_password['gesture_data']['confidence_threshold']
     storage_type = gesture_password['gesture_data'].get('storage_type', 'model')
     
-    if storage_type == 'positions' and isinstance(gesture_data, list):
-        # We have position data
-        stored_positions = gesture_password['gesture_data']['hand_positions']
-        return verify_gesture_positions(stored_positions, gesture_data, threshold)
+    if storage_type == 'angles' and isinstance(gesture_data, dict):
+        # We have angle data
+        stored_angles = gesture_password['gesture_data']['angle_data']
+        return verify_gesture_angles(stored_angles, gesture_data, threshold)
     elif storage_type == 'model' and isinstance(gesture_data, (int, float)):
         # We have a model confidence score directly
         confidence = float(gesture_data)
