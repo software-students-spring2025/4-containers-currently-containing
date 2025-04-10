@@ -4,80 +4,111 @@
 
 # Containerized App Exercise
 
-## Database Setup
+# Hand Gesture Authentication System
 
-The system uses MongoDB as its primary database, running in a Docker container. The database stores user accounts, gesture passwords, protected documents, and authentication logs.
+A containerized application that uses hand gesture recognition for secure document access. The system recognizes and authenticates users based on the angles between their finger joints.
 
-### Database Structure
+## Team Members
+- [Andy Cabindol](https://github.com/andycabindol)
+- [David Yu](https://github.com/DavidYu00)
+- [Jason Mai](https://github.com/JasonMai233)
+- [Cyryl Zhang](https://github.com/nstraightbeam)
+
+## System Overview
+
+This system consists of three containerized components:
+
+1. **Machine Learning Client** - Captures hand poses from a camera and calculates joint angles
+2. **Web Application** - Provides user interface for registration, authentication, and document management
+3. **MongoDB Database** - Stores user data, gesture passwords, and protected documents
+
+The system uses angle-based authentication instead of traditional passwords. Users register by capturing the specific angles of their hand joints, and then authenticate by reproducing a similar hand gesture. 
+
+## Database Structure
 
 The MongoDB database consists of the following collections:
 
 1. **users** - Stores user account information
-   - Contains basic user profile data
-   - References to gesture passwords
-   - List of documents owned by the user
+   - Username, email, and creation timestamp
+   - References to gesture passwords and owned documents
 
-2. **gesture_passwords** - Stores gesture authentication models
+2. **gesture_passwords** - Stores gesture authentication data
+   - 10 finger joint angles that form the "password"
+   - Confidence threshold for authentication
    - Links to the user who created the gesture
-   - Contains paths to the trained model files
-   - Stores configuration like confidence thresholds
 
 3. **documents** - Stores protected documents
-   - Contains the actual document content
+   - Document content and metadata
+   - Access control based on user ownership
    - Tracks document creation and modification dates
-   - Logs access attempts
 
 4. **authentication_logs** - Records authentication attempts
    - Tracks successful and failed authentication attempts
    - Stores confidence levels for gesture recognition
    - Records device information and timestamps
 
-5. **gesture_training_sessions** - Tracks model training activities
-   - Records when users train or update their gesture passwords
-   - Stores training metadata such as sample counts
+## Setup and Installation
 
-### Running the Database
+### Prerequisites
+- Docker and Docker Compose
+- Webcam for hand gesture detection
+- Git
 
-To start the MongoDB container:
+### Running the System
 
-1. Make sure Docker Desktop is running
-2. From the project root directory, run: docker compose up -d mongodb
-3. The database will be available at `localhost:27017`
+1. Clone the repository:
+```bash
+git clone https://github.com/software-students-spring2025/4-containers-currently-containing.git
+cd 4-containers-currently-containing
+```
 
-### Connecting to the Database
+2. Start all services with Docker Compose:
+```bash
+docker compose up -d
+```
 
-The database connection is handled by the `utils/database.py` module in the web app. This module provides functions for all database operations. 
-The connection string is: mongodb://admin@localhost:27017/gesture_auth?authSource=admin
+3. Access the web application:
+```bash
+http://localhost:5001
+```
 
-### Available Database Functions
+### Running Individual Components
 
-The `utils/database.py` module provides the following functions:
+MongoDB Database 
+```bash
+docker compose up -d mongodb
+```
 
-#### User Management
-- `create_user(username, email)` - Create a new user
-- `get_user_by_id(user_id)` - Find a user by ID
-- `get_user_by_username(username)` - Find a user by username
+Web Application
+```bash
+docker compose up -d web-app
+```
 
-#### Gesture Password Management
-- `create_gesture_password(user_id, gesture_name, model_path, confidence_threshold)` - Create a gesture password
-- `get_user_gesture_password(user_id)` - Get a user's active gesture password
+Machine Learning Client
+```bash
+docker compose up -d ml-client
+```
 
-#### Document Management
-- `create_document(user_id, title, content)` - Create a new document
-- `get_user_documents(user_id)` - Get all documents for a user
-- `get_document(doc_id, user_id)` - Get a document by ID
-- `update_document(doc_id, content, user_id)` - Update a document's content
+### Development
 
-#### Authentication Logging
-- `log_authentication(user_id, success, confidence, ip_address, user_agent, document_id)` - Log an authentication attempt
+To test the database connection:
+```bash
+cd web-app
+python3 test_db.py
+```
 
-### Testing the Database Connection
+To test the angle authentication system:
+```bash
+cd web-app
+python3 test_angle_auth.py
+```
 
-A test script is provided at `web-app/test_db.py`. To run it:
+To test the API endpoints:
+```bash
+cd web-app
+python3 test_api.py
+```
 
-1. Activate the virtual environment: source venv/bin/activate
-2. Navigate to the web-app directory: cd web-app
-3. Run the test script: python test_db.py
 
 ### Running the Hand Detector
 
@@ -92,7 +123,7 @@ pip install flask opencv-python
 
 ### 1. Start the webcam streamer (on your host)
 
-cd into machine-learning-client
+cd machine-learning-client
 
 ```bash
 python webcam_streamer.py
